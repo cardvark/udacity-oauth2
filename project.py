@@ -6,7 +6,9 @@ app = Flask(__name__)
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Restaurant, MenuItem
+from database_setup import Base, Restaurant, MenuItem, User
+
+import database_setup
 
 # creates flow object from client secrets json file
 # (which has client id, client secret, other oauth2 parameters.)
@@ -22,6 +24,20 @@ import json
 # to a response object we can send to client.
 from flask import make_response
 import requests
+
+
+#Connect to Database and create database session
+engine = database_setup.engine
+Base.metadata.bind = engine
+
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
+
+# client ID
+# 202542788499-64qmr7agdj74vu8ck4qvqapupoto4jp9.apps.googleusercontent.com
+# client secret
+# xQ4g1gEeRCuxtQDrg5GEdQH3
+
 
 # client_secrets.json downloaded from credentials page:
 # https://console.developers.google.com/apis/credentials?project=swift-adviser-137423
@@ -157,19 +173,6 @@ def gdisconnect():
         response = make_response(json.dumps('Failed to revoke token for given user.'), 400)
         response.headers['Content-Type'] = 'application/json'
         return response
-
-
-#Connect to Database and create database session
-engine = create_engine('sqlite:///restaurantmenu.db')
-Base.metadata.bind = engine
-
-DBSession = sessionmaker(bind=engine)
-session = DBSession()
-
-# client ID
-# 202542788499-64qmr7agdj74vu8ck4qvqapupoto4jp9.apps.googleusercontent.com
-# client secret
-# xQ4g1gEeRCuxtQDrg5GEdQH3
 
 
 @app.route('/login')
