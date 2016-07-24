@@ -4,6 +4,7 @@
         <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
     </head>
     <body>
+        {# Google Plus sign in #}
         <div id="signinButton">
             <span class="g-signin"
                 data-scope="openid email profile"
@@ -51,5 +52,65 @@
             }
         }
         </script>
+        {# End google sign in #}
+
+        {# FB signin #}
+        <script>
+            window.fbAsyncInit = function() {
+                FB.init({
+                    appId: '700933603391595',
+                    cookie: true,
+                    xfbml: true,  // parse social plugins on this page
+                    version: 'v2.4'
+                });
+            };
+
+            // Load SDK asynchronously
+            (function(d, s, id){
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = "//connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+
+            function sendTokenToServer(){
+                // retrieves the temp access token
+                var access_token = FB.getAuthResponse()['accessToken'];
+                console.log(access_token);
+                console.log('Welcome! Fetching your information...');
+                // Using FB sdk to make API calls.
+                FB.api('/me', function(response){
+                    console.log('Successful login for: ' + response.name);
+                    // Sends access token to server via Ajax along with state value.
+                    $.ajax({
+                        type: 'POST',
+                        url: '/fbconnect?state={{STATE}}',
+                        processData: false,
+                        data: access_token,
+                        contentType: 'application/octet-stream; charset=utf-8',
+                        success: function(result) {
+                            // Handle or verify server response if necessary
+                            if (result) {
+                                $('#result').html('Login Successful!</br>' + result + '</br>Redirecting...');
+                                setTimeout(function(){
+                                    window.location.href = "/restaurant";
+                                }, 4000);
+                            } else {
+                                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+                            }
+                        }
+                    });
+                });
+            }
+        </script>
+        <button>
+            {# Using FB sdk to create the login button #}
+            {# scope is limited to public_profile and email info. #}
+            <fb:login-button scope="public_profile, email" onlogin="sendTokenToServer();">
+                <a href="javascript:sendTokenToServer()">Login with Facebok</a>
+            </fb:login-button>
+        </button>
+        {# End FB sign in #}
     </body>
 </html>
